@@ -271,7 +271,7 @@ const MapContainer = ({ route, navigation }) => {
       <FloatingActionButton
         loading={isLoading}
         disabled={isLoading}
-        onPress={() => navigation.navigate('Add trip')}
+        onPress={() => activityHandler('adding')}
       />
       <Toolbar
         styles={styles}

@@ -18,7 +18,7 @@ import { fetchMapRequest, patchMapRequest } from 'actions/mapActions';
 import { styles } from './MapContainerStyle';
 import fetchMapSearch from 'services/fetchMapSearch';
 import Colors from 'constants/Colors';
-import { Searchbar } from 'utils';
+import { Searchbar, FloatingActionButton } from 'utils';
 
 MapboxGL.setAccessToken(MAPBOX_API_KEY);
 MapboxGL.setConnected(true);
@@ -78,6 +78,7 @@ const MapContainer = ({ route, navigation }) => {
         if (!addingMarkerActive) {
           setDeletingMarkerActive(false);
           setSearchingActive(false);
+          console.log(markers);
         } else {
           setMarkerTitle('');
         }
@@ -267,7 +268,11 @@ const MapContainer = ({ route, navigation }) => {
         {renderMarkers()}
         <MapboxGL.UserLocation />
       </MapboxGL.MapView>
-
+      <FloatingActionButton
+        loading={isLoading}
+        disabled={isLoading}
+        onPress={() => navigation.navigate('Add trip')}
+      />
       <Toolbar
         styles={styles}
         navigation={navigation}

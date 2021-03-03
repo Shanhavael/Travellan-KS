@@ -33,13 +33,13 @@ const Toolbar = ({
         handler={false}
         onPress={onExitHandler}
       />
-      <ToolbarButton
+      {/* <ToolbarButton
         icon="map-marker-plus"
         isLoading={isLoading}
         loader={false}
         handler={addingMarkerActive}
         onPress={addingActivityHandler}
-      />
+      /> */}
       <ToolbarButton
         icon="map-marker-minus"
         isLoading={isLoading}

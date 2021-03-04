@@ -47,6 +47,7 @@ const MapContainer = ({ route, navigation }) => {
   const [isChoosing, setIsChoosing] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [searchAnswer, setSearchAnswer] = useState([]);
+  const [mapCategory, setMapCategory] = useState('Main');
 
   const extractRegion = () =>
     selectedTrip.map
@@ -211,6 +212,10 @@ const MapContainer = ({ route, navigation }) => {
     setIsChoosing(false);
     setSearchAnswer([]);
     // this._map.flyTo([longitude, latitude]);
+  };
+
+  const showRouteHandler = () => {
+    console.log(fetchMapRoute(''));
   };
 
   renderFooter = () => {

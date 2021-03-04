@@ -6,7 +6,7 @@ const API_KEY = MAPBOX_API_KEY;
 async function fetchMapRoute(points) {
   return await axios
     .get(
-      `https://api.mapbox.com/directions/v5/mapbox/walking/${points}?access_token=${API_KEY}`,
+      `https://api.mapbox.com/optimized-trips/v1/mapbox/walking/${points}?access_token=${API_KEY}`,
     )
     .then((json) => json.data);
 }

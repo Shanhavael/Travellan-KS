@@ -214,8 +214,10 @@ const MapContainer = ({ route, navigation }) => {
     // this._map.flyTo([longitude, latitude]);
   };
 
-  const showRouteHandler = () => {
-    console.log(markers.latitude);
+  const showRouteHandler = async () => {
+    const route = await fetchMapRoute();
+
+    console.log(route);
   };
 
   renderFooter = () => {

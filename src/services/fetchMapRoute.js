@@ -8,7 +8,7 @@ async function fetchMapRoute(points) {
     .get(
       `https://api.mapbox.com/optimized-trips/v1/mapbox/walking/${points}?access_token=${API_KEY}`,
     )
-    .then((json) => json.data);
+    .then((json) => json.data.trips);
 }
 
 export default fetchMapRoute;

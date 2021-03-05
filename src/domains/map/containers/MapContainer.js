@@ -19,7 +19,7 @@ import { styles } from './MapContainerStyle';
 import fetchMapSearch from 'services/fetchMapSearch';
 import fetchMapRoute from 'services/fetchMapRoute';
 import Colors from 'constants/Colors';
-import { Searchbar, FloatingActionButton } from 'utils';
+import { Searchbar, FloatingActionButton, FloatingRouteButton } from 'utils';
 
 MapboxGL.setAccessToken(MAPBOX_API_KEY);
 MapboxGL.setConnected(true);
@@ -215,7 +215,7 @@ const MapContainer = ({ route, navigation }) => {
   };
 
   const showRouteHandler = () => {
-    console.log(fetchMapRoute(''));
+    console.log(markers.latitude);
   };
 
   renderFooter = () => {
@@ -278,6 +278,11 @@ const MapContainer = ({ route, navigation }) => {
         loading={isLoading}
         disabled={isLoading}
         onPress={() => activityHandler('adding')}
+      />
+      <FloatingRouteButton
+        loading={isLoading}
+        disabled={isLoading}
+        onPress={() => showRouteHandler()}
       />
       <Toolbar
         styles={styles}

@@ -1,6 +1,6 @@
 import Geolocation from '@react-native-community/geolocation';
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { MAPBOX_API_KEY } from 'react-native-dotenv';
 import {
   FlatList,
@@ -20,6 +20,7 @@ import fetchMapSearch from 'services/fetchMapSearch';
 import fetchMapRoute from 'services/fetchMapRoute';
 import Colors from 'constants/Colors';
 import { Searchbar, FloatingActionButton, FloatingRouteButton } from 'utils';
+import { acc } from 'react-native-reanimated';
 
 MapboxGL.setAccessToken(MAPBOX_API_KEY);
 MapboxGL.setConnected(true);
@@ -36,18 +37,26 @@ const MapContainer = ({ route, navigation }) => {
   const [markers, setMarkers] = useState(
     selectedTrip.map ? selectedTrip.map.nodes : [],
   );
+  const accommodation = useSelector(
+    (state) =>
+      state.trips.trips.find((item) => item.id === tripId).accommodation,
+  );
   const [addingMarkerActive, setAddingMarkerActive] = useState(false);
   const [deletingMarkerActive, setDeletingMarkerActive] = useState(false);
   const [searchingActive, setSearchingActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [markerTitle, setMarkerTitle] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isRoute, setIsRoute] = useState(false);
   const [isSelected, setIsSelected] = useState(false);
+  const [isAcc, setIsAcc] = useState(false);
   const [error, setError] = useState(null);
   const [isChoosing, setIsChoosing] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [searchAnswer, setSearchAnswer] = useState([]);
   const [mapCategory, setMapCategory] = useState('Main');
+  const [routeLine, setRouteLine] = useState([]);
+  const [pointsString, setPointsString] = useState('');
 
   const extractRegion = () =>
     selectedTrip.map
@@ -190,6 +199,19 @@ const MapContainer = ({ route, navigation }) => {
     );
   };
 
+  const addAccommodation = () => {
+    if (!isAcc) {
+      for (const key in accommodation) {
+        createMarker(
+          accommodation[key].location.latitude,
+          accommodation[key].location.longitude,
+          accommodation[key].name,
+        );
+      }
+      setIsAcc(true);
+    }
+  };
+
   const searchHandler = async () => {
     if (searchQuery.length > 3) {
       const longitude = currentRegion.longitude;
@@ -215,9 +237,28 @@ const MapContainer = ({ route, navigation }) => {
   };
 
   const showRouteHandler = async () => {
-    const route = await fetchMapRoute();
+    !!markers &&
+      markers.map(
+        (marker) =>
+          setPointsString(pointsString + ';' + marker.lat + ',' + marker.lon),
+        setPointsString(pointsString.substring(1)),
+      );
+    for (const key in accommodation) {
+      setPointsString(
+        accommodation[key].location.longitude +
+          ',' +
+          accommodation[key].location.latitude +
+          pointsString,
+      );
+      console.log(pointsString);
+    }
+    const [line] = await fetchMapRoute(
+      '16.892816546110595,52.400857699109054;16.970245214096764,52.41154512201288',
+    );
+    setRouteLine(line.geometry);
+    setIsRoute(!isRoute);
 
-    console.log(route);
+    // setPointsString('');
   };
 
   renderFooter = () => {
@@ -273,8 +314,14 @@ const MapContainer = ({ route, navigation }) => {
             [currentRegion.longitude, currentRegion.latitude]
           }
         />
+        {addAccommodation()}
         {renderMarkers()}
         <MapboxGL.UserLocation />
+        {isRoute && (
+          <MapboxGL.ShapeSource id="line1" shape={routeLine}>
+            <MapboxGL.LineLayer id="linelayer1" style={{ lineColor: 'red' }} />
+          </MapboxGL.ShapeSource>
+        )}
       </MapboxGL.MapView>
       <FloatingActionButton
         loading={isLoading}

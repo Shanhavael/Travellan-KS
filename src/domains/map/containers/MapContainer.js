@@ -233,48 +233,18 @@ const MapContainer = ({ route, navigation }) => {
     setSearchQuery('');
     setIsChoosing(false);
     setSearchAnswer([]);
-    // this._map.flyTo([longitude, latitude]);
-  };
-
-  const routeAskHandler = () => {
-    let cords = '';
-    !!markers &&
-      markers.map((marker) => (cords += ';' + marker.lat + ',' + marker.lon));
-    cords = cords.substring(1);
-    console.log(cords);
   };
 
   const showRouteHandler = async () => {
-    // routeAskHandler();
-    // !!markers &&
-    //   markers.map(
-    //     (marker) =>
-    //       setPointsString(pointsString + ';' + marker.lat + ',' + marker.lon),
-    //     setPointsString(pointsString.substring(1)),
-    //     console.log(pointsString),
-    //   );
-    // for (const key in accommodation) {
-    //   setPointsString(
-    //     accommodation[key].location.longitude +
-    //       ',' +
-    //       accommodation[key].location.latitude +
-    //       pointsString,
-    //   );
     if (!isRoute) {
       let cords = '';
       !!markers &&
         markers.map((marker) => (cords += ';' + marker.lat + ',' + marker.lon));
       cords = cords.substring(1);
-      console.log(cords);
-      setPointsString(cords);
-      console.log(pointsString);
-      // }
       const [line] = await fetchMapRoute(cords);
       setRouteLine(line.geometry);
     }
     setIsRoute(!isRoute);
-
-    // setPointsString('');
   };
 
   renderFooter = () => {
@@ -325,10 +295,7 @@ const MapContainer = ({ route, navigation }) => {
       >
         <MapboxGL.Camera
           zoomLevel={10}
-          centerCoordinate={
-            // extractRegion().geometry.coordinates - left for further debugging
-            [currentRegion.longitude, currentRegion.latitude]
-          }
+          centerCoordinate={[currentRegion.longitude, currentRegion.latitude]}
         />
         {addAccommodation()}
         {renderMarkers()}

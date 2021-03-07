@@ -239,15 +239,13 @@ const MapContainer = ({ route, navigation }) => {
   const routeAskHandler = () => {
     let cords = '';
     !!markers &&
-      markers.map(
-        (marker) => (cords += ';' + marker.lat + ',' + marker.lon),
-        // console.log(marker),
-      );
+      markers.map((marker) => (cords += ';' + marker.lat + ',' + marker.lon));
+    cords = cords.substring(1);
     console.log(cords);
   };
 
   const showRouteHandler = async () => {
-    routeAskHandler();
+    // routeAskHandler();
     // !!markers &&
     //   markers.map(
     //     (marker) =>
@@ -262,11 +260,15 @@ const MapContainer = ({ route, navigation }) => {
     //       accommodation[key].location.latitude +
     //       pointsString,
     //   );
+    let cords = '';
+    !!markers &&
+      markers.map((marker) => (cords += ';' + marker.lat + ',' + marker.lon));
+    cords = cords.substring(1);
+    console.log(cords);
+    setPointsString(cords);
     console.log(pointsString);
     // }
-    const [line] = await fetchMapRoute(
-      '16.892816546110595,52.400857699109054;16.92429,52.40146;16.970245214096764,52.41154512201288',
-    );
+    const [line] = await fetchMapRoute(cords);
     setRouteLine(line.geometry);
     setIsRoute(!isRoute);
 

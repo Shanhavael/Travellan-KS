@@ -260,16 +260,18 @@ const MapContainer = ({ route, navigation }) => {
     //       accommodation[key].location.latitude +
     //       pointsString,
     //   );
-    let cords = '';
-    !!markers &&
-      markers.map((marker) => (cords += ';' + marker.lat + ',' + marker.lon));
-    cords = cords.substring(1);
-    console.log(cords);
-    setPointsString(cords);
-    console.log(pointsString);
-    // }
-    const [line] = await fetchMapRoute(cords);
-    setRouteLine(line.geometry);
+    if (!isRoute) {
+      let cords = '';
+      !!markers &&
+        markers.map((marker) => (cords += ';' + marker.lat + ',' + marker.lon));
+      cords = cords.substring(1);
+      console.log(cords);
+      setPointsString(cords);
+      console.log(pointsString);
+      // }
+      const [line] = await fetchMapRoute(cords);
+      setRouteLine(line.geometry);
+    }
     setIsRoute(!isRoute);
 
     // setPointsString('');

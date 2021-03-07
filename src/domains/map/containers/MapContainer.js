@@ -236,24 +236,36 @@ const MapContainer = ({ route, navigation }) => {
     // this._map.flyTo([longitude, latitude]);
   };
 
-  const showRouteHandler = async () => {
+  const routeAskHandler = () => {
+    let cords = '';
     !!markers &&
       markers.map(
-        (marker) =>
-          setPointsString(pointsString + ';' + marker.lat + ',' + marker.lon),
-        setPointsString(pointsString.substring(1)),
+        (marker) => (cords += ';' + marker.lat + ',' + marker.lon),
+        // console.log(marker),
       );
-    for (const key in accommodation) {
-      setPointsString(
-        accommodation[key].location.longitude +
-          ',' +
-          accommodation[key].location.latitude +
-          pointsString,
-      );
-      console.log(pointsString);
-    }
+    console.log(cords);
+  };
+
+  const showRouteHandler = async () => {
+    routeAskHandler();
+    // !!markers &&
+    //   markers.map(
+    //     (marker) =>
+    //       setPointsString(pointsString + ';' + marker.lat + ',' + marker.lon),
+    //     setPointsString(pointsString.substring(1)),
+    //     console.log(pointsString),
+    //   );
+    // for (const key in accommodation) {
+    //   setPointsString(
+    //     accommodation[key].location.longitude +
+    //       ',' +
+    //       accommodation[key].location.latitude +
+    //       pointsString,
+    //   );
+    console.log(pointsString);
+    // }
     const [line] = await fetchMapRoute(
-      '16.892816546110595,52.400857699109054;16.970245214096764,52.41154512201288',
+      '16.892816546110595,52.400857699109054;16.92429,52.40146;16.970245214096764,52.41154512201288',
     );
     setRouteLine(line.geometry);
     setIsRoute(!isRoute);

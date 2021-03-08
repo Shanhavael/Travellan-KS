@@ -56,7 +56,6 @@ const MapContainer = ({ route, navigation }) => {
   const [searchAnswer, setSearchAnswer] = useState([]);
   const [mapCategory, setMapCategory] = useState('Main');
   const [routeLine, setRouteLine] = useState([]);
-  const [pointsString, setPointsString] = useState('');
 
   const extractRegion = () =>
     selectedTrip.map
@@ -168,6 +167,7 @@ const MapContainer = ({ route, navigation }) => {
         const title = markerTitle;
         createMarker(longitude, latitude, title);
         setMarkerTitle('');
+        setAddingMarkerActive(false);
       } else {
         setError('Enter the title');
       }

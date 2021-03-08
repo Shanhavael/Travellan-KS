@@ -5,6 +5,7 @@ export { default as Card } from './Card/Card';
 export { default as Checkbox } from './Checkbox';
 export { default as DateTimePicker } from './DateTimePicker/DateTimePicker';
 export { default as FloatingActionButton } from './FloatingActionButton/FloatingActionButton';
+export { default as FloatingRouteButton } from './FloatingActionButton/FloatingRouteButton';
 export { default as HeaderButton } from './HeaderButton';
 export { default as RadioButton } from './RadioButton/RadioButton';
 export { default as RadioButtonGroup } from './RadioButtonGroup';

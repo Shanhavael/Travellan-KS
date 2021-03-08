@@ -1,6 +1,6 @@
 import Geolocation from '@react-native-community/geolocation';
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { MAPBOX_API_KEY } from 'react-native-dotenv';
 import {
   FlatList,
@@ -17,8 +17,10 @@ import { Toolbar } from '../components';
 import { fetchMapRequest, patchMapRequest } from 'actions/mapActions';
 import { styles } from './MapContainerStyle';
 import fetchMapSearch from 'services/fetchMapSearch';
+import fetchMapRoute from 'services/fetchMapRoute';
 import Colors from 'constants/Colors';
-import { Searchbar } from 'utils';
+import { Searchbar, FloatingActionButton, FloatingRouteButton } from 'utils';
+import { acc } from 'react-native-reanimated';
 
 MapboxGL.setAccessToken(MAPBOX_API_KEY);
 MapboxGL.setConnected(true);
@@ -35,17 +37,25 @@ const MapContainer = ({ route, navigation }) => {
   const [markers, setMarkers] = useState(
     selectedTrip.map ? selectedTrip.map.nodes : [],
   );
+  const accommodation = useSelector(
+    (state) =>
+      state.trips.trips.find((item) => item.id === tripId).accommodation,
+  );
   const [addingMarkerActive, setAddingMarkerActive] = useState(false);
   const [deletingMarkerActive, setDeletingMarkerActive] = useState(false);
   const [searchingActive, setSearchingActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [markerTitle, setMarkerTitle] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isRoute, setIsRoute] = useState(false);
   const [isSelected, setIsSelected] = useState(false);
+  const [isAcc, setIsAcc] = useState(false);
   const [error, setError] = useState(null);
   const [isChoosing, setIsChoosing] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [searchAnswer, setSearchAnswer] = useState([]);
+  const [mapCategory, setMapCategory] = useState('Main');
+  const [routeLine, setRouteLine] = useState([]);
 
   const extractRegion = () =>
     selectedTrip.map
@@ -78,6 +88,7 @@ const MapContainer = ({ route, navigation }) => {
         if (!addingMarkerActive) {
           setDeletingMarkerActive(false);
           setSearchingActive(false);
+          console.log(markers);
         } else {
           setMarkerTitle('');
         }
@@ -156,6 +167,7 @@ const MapContainer = ({ route, navigation }) => {
         const title = markerTitle;
         createMarker(longitude, latitude, title);
         setMarkerTitle('');
+        setAddingMarkerActive(false);
       } else {
         setError('Enter the title');
       }
@@ -187,6 +199,19 @@ const MapContainer = ({ route, navigation }) => {
     );
   };
 
+  const addAccommodation = () => {
+    if (!isAcc) {
+      for (const key in accommodation) {
+        createMarker(
+          accommodation[key].location.latitude,
+          accommodation[key].location.longitude,
+          accommodation[key].name,
+        );
+      }
+      setIsAcc(true);
+    }
+  };
+
   const searchHandler = async () => {
     if (searchQuery.length > 3) {
       const longitude = currentRegion.longitude;
@@ -208,7 +233,18 @@ const MapContainer = ({ route, navigation }) => {
     setSearchQuery('');
     setIsChoosing(false);
     setSearchAnswer([]);
-    // this._map.flyTo([longitude, latitude]);
+  };
+
+  const showRouteHandler = async () => {
+    if (!isRoute) {
+      let cords = '';
+      !!markers &&
+        markers.map((marker) => (cords += ';' + marker.lat + ',' + marker.lon));
+      cords = cords.substring(1);
+      const [line] = await fetchMapRoute(cords);
+      setRouteLine(line.geometry);
+    }
+    setIsRoute(!isRoute);
   };
 
   renderFooter = () => {
@@ -259,15 +295,27 @@ const MapContainer = ({ route, navigation }) => {
       >
         <MapboxGL.Camera
           zoomLevel={10}
-          centerCoordinate={
-            // extractRegion().geometry.coordinates - left for further debugging
-            [currentRegion.longitude, currentRegion.latitude]
-          }
+          centerCoordinate={[currentRegion.longitude, currentRegion.latitude]}
         />
+        {addAccommodation()}
         {renderMarkers()}
         <MapboxGL.UserLocation />
+        {isRoute && (
+          <MapboxGL.ShapeSource id="line1" shape={routeLine}>
+            <MapboxGL.LineLayer id="linelayer1" style={{ lineColor: 'red' }} />
+          </MapboxGL.ShapeSource>
+        )}
       </MapboxGL.MapView>
-
+      <FloatingActionButton
+        loading={isLoading}
+        disabled={isLoading}
+        onPress={() => activityHandler('adding')}
+      />
+      <FloatingRouteButton
+        loading={isLoading}
+        disabled={isLoading}
+        onPress={() => showRouteHandler()}
+      />
       <Toolbar
         styles={styles}
         navigation={navigation}

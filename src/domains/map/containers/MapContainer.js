@@ -19,7 +19,13 @@ import { styles } from './MapContainerStyle';
 import fetchMapSearch from 'services/fetchMapSearch';
 import fetchMapRoute from 'services/fetchMapRoute';
 import Colors from 'constants/Colors';
-import { Searchbar, FloatingActionButton, FloatingRouteButton } from 'utils';
+import {
+  Searchbar,
+  FloatingDeleteButton,
+  FloatingActionButton,
+  FloatingRouteButton,
+  FloatingChangeButton,
+} from 'utils';
 import { acc } from 'react-native-reanimated';
 
 MapboxGL.setAccessToken(MAPBOX_API_KEY);
@@ -41,6 +47,9 @@ const MapContainer = ({ route, navigation }) => {
     (state) =>
       state.trips.trips.find((item) => item.id === tripId).accommodation,
   );
+  const startDate = new Date(selectedTrip.startDate);
+  const endDate = new Date(selectedTrip.endDate);
+
   const [addingMarkerActive, setAddingMarkerActive] = useState(false);
   const [deletingMarkerActive, setDeletingMarkerActive] = useState(false);
   const [searchingActive, setSearchingActive] = useState(false);
@@ -49,13 +58,18 @@ const MapContainer = ({ route, navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isRoute, setIsRoute] = useState(false);
   const [isSelected, setIsSelected] = useState(false);
+  const [selectedTitle, setSelectedTitle] = useState('');
+  const [selectedEvent, setSelectedEvent] = useState('');
   const [isAcc, setIsAcc] = useState(false);
   const [error, setError] = useState(null);
   const [isChoosing, setIsChoosing] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [searchAnswer, setSearchAnswer] = useState([]);
-  const [mapCategory, setMapCategory] = useState('Main');
+  const [mapCategory, setMapCategory] = useState('Entire trip');
   const [routeLine, setRouteLine] = useState([]);
+  const [changingActive, setChangingActive] = useState(false);
+  const [fileteredMarkers, setFilteredMarkers] = useState(markers);
+  const [isMoving, setIsMoving] = useState(false);
 
   const extractRegion = () =>
     selectedTrip.map
@@ -65,17 +79,27 @@ const MapContainer = ({ route, navigation }) => {
       : selectedTrip.region;
 
   const renderMarkers = () =>
-    !!markers &&
-    markers.map((marker) => (
+    !!fileteredMarkers &&
+    fileteredMarkers.map((marker) => (
       <MapboxGL.PointAnnotation
         id={`marker-${marker.id}`}
         coordinate={[marker.lat, marker.lon]}
-        onDeselected={(event) => handleDeleteMarker(event, marker.title)}
-        selected={isSelected}
+        onDeselected={(event) => handleDeselectMarker(event, marker.title)}
+        onSelected={(event) => handleSelectMarker(event, marker.title)}
       >
         <MapboxGL.Callout title={marker.title} />
       </MapboxGL.PointAnnotation>
     ));
+
+  const filterMarkers = () => {
+    if (mapCategory !== 'Entire trip') {
+      setFilteredMarkers(
+        markers.filter((item) => item.category === mapCategory),
+      );
+    } else {
+      setFilteredMarkers(markers);
+    }
+  };
 
   const currentRegionHandler = (region) => {
     currentRegion.longitude = region.geometry.coordinates[0];
@@ -88,7 +112,7 @@ const MapContainer = ({ route, navigation }) => {
         if (!addingMarkerActive) {
           setDeletingMarkerActive(false);
           setSearchingActive(false);
-          console.log(markers);
+          console.log(startDate.getMonth() + 1, endDate.getDate());
         } else {
           setMarkerTitle('');
         }
@@ -115,26 +139,77 @@ const MapContainer = ({ route, navigation }) => {
     }
   };
 
+  const handleSelectMarker = (event, title) => {
+    setIsSelected(true);
+    setSelectedEvent(event);
+    setSelectedTitle(title);
+  };
+
+  const handleDeselectMarker = () => {
+    setIsSelected(false);
+    setSelectedEvent('');
+    setSelectedTitle('');
+  };
+
+  const changingHandler = () => {
+    setChangingActive(!changingActive);
+    filterMarkers();
+    console.log(mapCategory, fileteredMarkers);
+  };
+
+  const categoryHandler = async (category) => {
+    setMapCategory(category);
+    addAccommodation();
+    filterMarkers();
+    setIsRoute(false);
+    changingHandler();
+  };
+
+  const categories = [
+    { id: '1', title: 'Entire trip' },
+    { id: '2', title: 'Day 1' },
+    { id: '3', title: 'Day 2' },
+    { id: '4', title: 'Day 3' },
+    { id: '5', title: 'Day 4' },
+    { id: '6', title: 'Day 5' },
+    { id: '7', title: 'Day 6' },
+    { id: '8', title: 'Day 7' },
+  ];
+
   const handleDeleteMarker = (event, title) => {
-    if (deletingMarkerActive) {
-      setIsSelected(false);
-      Alert.alert(
-        `Delete ${title}`,
-        'Are you sure?',
-        [
-          {
-            onPress: () => setIsSelected(false),
-            style: 'cancel',
-            text: 'Cancel',
-          },
-          {
-            onPress: () => markerOnPressHandler(event),
-            text: 'OK',
-          },
-        ],
-        { cancelable: true, onDismiss: () => setIsSelected(false) },
-      );
-    }
+    Alert.alert(
+      `Delete ${title}`,
+      'Are you sure?',
+      [
+        {
+          style: 'cancel',
+          text: 'Cancel',
+        },
+        {
+          onPress: () => markerOnPressHandler(event),
+          text: 'OK',
+        },
+      ],
+      { cancelable: true },
+    );
+  };
+
+  const handleMovingMarker = (event, title, category) => {
+    Alert.alert(
+      `Move ${title} to ${category}`,
+      'Are you sure?',
+      [
+        {
+          style: 'cancel',
+          text: 'Cancel',
+        },
+        {
+          onPress: () => markerOnPressHandler(event),
+          text: 'OK',
+        },
+      ],
+      { cancelable: true },
+    );
   };
 
   const onExitHandler = async () => {
@@ -151,13 +226,24 @@ const MapContainer = ({ route, navigation }) => {
     }
   };
 
+  const moveCategory = async (category) => {
+    handleMovingMarker(selectedEvent, selectedTitle, category);
+    const [latitude, longitude] = selectedEvent.geometry.coordinates;
+    console.log('creating');
+    createMarker(longitude, latitude, selectedTitle, category);
+    setIsMoving(false);
+    setIsRoute(false);
+    handleDeselectMarker();
+  };
+
   const markerOnPressHandler = async (coords) => {
     const [latitude, longitude] = coords.geometry.coordinates;
     const marker = markers.filter(
       (item) => item.lat === latitude && item.lon === longitude,
     )[0];
-    deletingMarkerActive &&
-      setMarkers(markers.filter((item) => item.id !== marker.id));
+    setMarkers(markers.filter((item) => item.id !== marker.id));
+    handleDeselectMarker();
+    filterMarkers();
   };
 
   const mapOnPressHandler = async (event) => {
@@ -165,16 +251,17 @@ const MapContainer = ({ route, navigation }) => {
     if (addingMarkerActive) {
       if (markerTitle !== '') {
         const title = markerTitle;
-        createMarker(longitude, latitude, title);
+        createMarker(longitude, latitude, title, mapCategory);
         setMarkerTitle('');
         setAddingMarkerActive(false);
+        filterMarkers();
       } else {
         setError('Enter the title');
       }
     }
   };
 
-  const createMarker = (longitude, latitude, title) => {
+  const createMarker = (longitude, latitude, title, category) => {
     setMarkers(
       markers
         ? [
@@ -185,6 +272,7 @@ const MapContainer = ({ route, navigation }) => {
               latitude,
               longitude,
               title,
+              category,
             ),
           ]
         : [
@@ -194,6 +282,7 @@ const MapContainer = ({ route, navigation }) => {
               latitude,
               longitude,
               title,
+              category,
             ),
           ],
     );
@@ -206,6 +295,7 @@ const MapContainer = ({ route, navigation }) => {
           accommodation[key].location.latitude,
           accommodation[key].location.longitude,
           accommodation[key].name,
+          mapCategory,
         );
       }
       setIsAcc(true);
@@ -227,7 +317,7 @@ const MapContainer = ({ route, navigation }) => {
   };
 
   const addSearchMarker = (longitude, latitude, title) => {
-    createMarker(longitude, latitude, title);
+    createMarker(longitude, latitude, title, mapCategory);
     currentRegion.longitude = latitude;
     currentRegion.latitude = longitude;
     setSearchQuery('');
@@ -238,8 +328,10 @@ const MapContainer = ({ route, navigation }) => {
   const showRouteHandler = async () => {
     if (!isRoute) {
       let cords = '';
-      !!markers &&
-        markers.map((marker) => (cords += ';' + marker.lat + ',' + marker.lon));
+      !!fileteredMarkers &&
+        fileteredMarkers.map(
+          (marker) => (cords += ';' + marker.lat + ',' + marker.lon),
+        );
       cords = cords.substring(1);
       const [line] = await fetchMapRoute(cords);
       setRouteLine(line.geometry);
@@ -316,6 +408,22 @@ const MapContainer = ({ route, navigation }) => {
         disabled={isLoading}
         onPress={() => showRouteHandler()}
       />
+
+      {isSelected && (
+        <FloatingDeleteButton
+          loading={isLoading}
+          disabled={isLoading}
+          onPress={() => handleDeleteMarker(selectedEvent, selectedTitle)}
+        />
+      )}
+      {isSelected && (
+        <FloatingChangeButton
+          loading={isLoading}
+          disabled={isLoading}
+          onPress={() => setIsMoving(true)}
+        />
+      )}
+
       <Toolbar
         styles={styles}
         navigation={navigation}
@@ -340,6 +448,13 @@ const MapContainer = ({ route, navigation }) => {
         addSearchMarker={(longitude, latitude, title) =>
           addSearchMarker(longitude, latitude, title)
         }
+        changingActive={changingActive}
+        changingHandler={() => changingHandler()}
+        categories={categories}
+        categoryHandler={(text) => categoryHandler(text)}
+        mapCategory={mapCategory}
+        isMoving={isMoving}
+        moveCategory={(text) => moveCategory(text)}
       />
     </View>
   );

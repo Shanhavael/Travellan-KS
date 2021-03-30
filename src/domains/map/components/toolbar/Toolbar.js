@@ -6,12 +6,9 @@ import { Searchbar } from 'utils';
 import { styles } from './ToolbarStyle';
 
 const Toolbar = ({
-  addingActivityHandler,
   addingMarkerActive,
   searchingActive,
   searchingActivityHandler,
-  deletingActivityHandler,
-  deletingMarkerActive,
   isLoading,
   markerTitle,
   onExitHandler,
@@ -23,6 +20,13 @@ const Toolbar = ({
   setIsChoosing,
   searchAnswer,
   addSearchMarker,
+  changingActive,
+  changingHandler,
+  categories,
+  categoryHandler,
+  mapCategory,
+  isMoving,
+  moveCategory,
 }) => (
   <View style={styles.overlay}>
     <View style={styles.actionBar}>
@@ -33,20 +37,14 @@ const Toolbar = ({
         handler={false}
         onPress={onExitHandler}
       />
-      {/* <ToolbarButton
-        icon="map-marker-plus"
+      <TouchableOpacity
         isLoading={isLoading}
         loader={false}
-        handler={addingMarkerActive}
-        onPress={addingActivityHandler}
-      /> */}
-      <ToolbarButton
-        icon="map-marker-minus"
-        isLoading={isLoading}
-        loader={false}
-        handler={deletingMarkerActive}
-        onPress={deletingActivityHandler}
-      />
+        handler={changingActive}
+        onPress={changingHandler}
+      >
+        <Text style={styles.text}>{mapCategory}</Text>
+      </TouchableOpacity>
       <ToolbarButton
         icon="map-search"
         isLoading={isLoading}
@@ -63,6 +61,48 @@ const Toolbar = ({
         value={markerTitle}
         onChangeText={(text) => setMarkerTitle(text)}
       />
+    )}
+
+    {changingActive && (
+      <View>
+        <FlatList
+          data={categories}
+          ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
+          ListFooterComponent={renderFooter()}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.searchResult}
+              onPress={() => {
+                categoryHandler(item.title);
+              }}
+            >
+              <Text style={styles.text}>{item.title}</Text>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
+    )}
+
+    {isMoving && (
+      <View>
+        <FlatList
+          data={categories}
+          ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
+          ListFooterComponent={renderFooter()}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.searchResult}
+              onPress={() => {
+                moveCategory(item.title);
+              }}
+            >
+              <Text style={styles.text}>{item.title}</Text>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
     )}
 
     {searchingActive && (

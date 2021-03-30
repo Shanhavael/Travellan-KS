@@ -6,6 +6,8 @@ export { default as Checkbox } from './Checkbox';
 export { default as DateTimePicker } from './DateTimePicker/DateTimePicker';
 export { default as FloatingActionButton } from './FloatingActionButton/FloatingActionButton';
 export { default as FloatingRouteButton } from './FloatingActionButton/FloatingRouteButton';
+export { default as FloatingDeleteButton } from './FloatingActionButton/FloatingDeleteButton';
+export { default as FloatingChangeButton } from './FloatingActionButton/FloatingChangeButton';
 export { default as HeaderButton } from './HeaderButton';
 export { default as RadioButton } from './RadioButton/RadioButton';
 export { default as RadioButtonGroup } from './RadioButtonGroup';
